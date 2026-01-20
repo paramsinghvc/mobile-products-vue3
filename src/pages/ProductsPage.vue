@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, type LocationQueryValue } from "vue-router";
 import { useQuery } from "@tanstack/vue-query";
 
 import { getCategories, getProducts, type Product } from "@/lib/api";
 import { DEFAULT_SORT, isSortKey, sortProducts, SORT_OPTIONS, type SortKey } from "@/lib/sort";
 
-type RouteQueryValue = string | string[] | null | undefined;
+// Vue Router query values are: string | null OR array of those
+type RouteQueryValue = LocationQueryValue | LocationQueryValue[] | undefined;
 
 function asSingleString(v: RouteQueryValue): string | null {
   if (typeof v === "string") return v;
-  if (Array.isArray(v)) return v[0] ?? null;
+  if (v == null) return null; // handles null/undefined
+  if (Array.isArray(v)) {
+    const first = v[0];
+    return typeof first === "string" ? first : null; // handles null in array
+  }
   return null;
 }
 
@@ -254,7 +259,9 @@ function onSortChange(v: SortKey) {
               loading="lazy"
             />
             <div class="absolute left-3 top-3">
-              <span class="rounded-full border border-white/10 bg-neutral-950/70 px-2 py-1 text-xs text-white/80 backdrop-blur">
+              <span
+                class="rounded-full border border-white/10 bg-neutral-950/70 px-2 py-1 text-xs text-white/80 backdrop-blur"
+              >
                 {{ p.category }}
               </span>
             </div>
